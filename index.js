@@ -1,39 +1,43 @@
-const colorBox = document.getElementById("color-box");
-const scoreBoard = document.getElementById("score");
+const cells = document.querySelectorAll('.cell');
+let currentPlayer = 'X';
+let gameBoard = ['', '', '', '', '', '', '', '', ''];
+let gameOver = false;
 
-let score = 0;
-let active = true;
-function changeColor() {
-    if (!active) return;
+function handleClick(event) {
+  const index = event.target.getAttribute('data-cell-index');
+  if (gameBoard[index] !== '' || gameOver) return;
 
-    const colors = ["red", "green", "blue", "yellow", "purple"];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    colorBox.style.backgroundColor = randomColor;
-}
-function onBoxClick() {
-    if (!active) return;
+  gameBoard[index] = currentPlayer;
+  event.target.textContent = currentPlayer;
 
-    if (colorBox.style.backgroundColor === "green") {
-        score++;
-        scoreBoard.textContent = score;
-    } else {
-        endGame();
-    }
+  if (checkWinner(currentPlayer)) {
+    setTimeout(() => alert(`${currentPlayer} виграв!`), 100);
+    gameOver = true;
+    return;
+  }
+
+  currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
 }
-function endGame() {
-    active = false;
-    alert(`Гра завершена! Твій результат: ${score}`);
-    resetGame();
+
+function checkWinner(player) {
+  const winPatterns = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // горизонтальні
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // вертикальні
+    [0, 4, 8], [2, 4, 6] // діагоналі
+  ];
+
+  return winPatterns.some(pattern => {
+    return pattern.every(index => gameBoard[index] === player);
+  });
 }
-function resetGame() {
-    score = 0;
-    scoreBoard.textContent = score;
-    colorBox.style.backgroundColor = "red";
-    active = true;
-    startGame();
+
+function restartGame() {
+  gameBoard = ['', '', '', '', '', '', '', '', ''];
+  cells.forEach(cell => cell.textContent = '');
+  currentPlayer = 'X';
+  gameOver = false;
 }
-function startGame() {
-    setInterval(changeColor, 800); // Зміна кольору раз на 800 мс
-}
-colorBox.addEventListener("click", onBoxClick);
-startGame();
+
+cells.forEach(cell => cell.addEventListener('click', handleClick));
+
+document.getElementById('restartButton').addEventListener('click', restartGame);
